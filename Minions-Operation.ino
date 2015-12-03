@@ -19,6 +19,8 @@ void setup() {
 
   randomSeed(analogRead(0));
 
+  delay(1500);
+
   pinMode(WT588D_RST, OUTPUT);  
   pinMode(WT588D_CS, OUTPUT); 
   pinMode(WT588D_CLK, OUTPUT); 
@@ -36,10 +38,43 @@ void setup() {
   digitalWrite(BUZZER_PIN, LOW); //Turn off buzzer
   digitalWrite(NOSE_LED_PIN, LOW); //Turn off buzzer
 
-  //Reset WT588D
-  digitalWrite(WT588D_RST, LOW);
-  delay(50);
-  digitalWrite(WT588D_RST, HIGH);
+  delay(250);
+
+  //Power on reset of WT588D
+  WT588D_reset();
+  
+  //Play startup sample
+  //If we don't get the busy signal from the WT588D reset and try again
+  Serial.println("Playing sample at startup");
+  WT588D_playRND();
+
+  int sampleTimer = 0;
+  //This blocks while the sample is playing. 
+  while(digitalRead(WT588D_BUSY) == 0)
+  { 
+    sampleTimer = sampleTimer + 50;
+    Serial.print("."); 
+    delay(50);
+  }
+
+  //This next bit might be redundant as I can't get the startup to fail now that I have put
+  //it into its own function and added an extra 50ms delay. Will leave this here
+  //just incase... 
+  //Typical, it works reliably for ages and then craps out as soon
+  //as I reassemble it. I guess the serial commands are possibly adding a long
+  //enough delay that the WT588D is resetting. Going to add two more delays.
+  //Before and after the WT588D reset. That didn't work, trying a longer reset signal...
+  //That didn't work... trying a long wait at power on before doing anything...
+  //It seems to be random - its working reasonably reliably with the firmware as is.
+  //Leaving the delays in incase that is actually helping
+
+  //After power on reset and playing a sample to say 'hey, were powered up and working'
+  //Check that the busy line was active for a while > ~200ms and if not, reset it again
+  if(sampleTimer<200)
+  {
+    Serial.println("Looks like the WT588D didn't reset properly... resetting it again.");
+    WT588D_reset();
+  }
 
   startMillis = millis(); //Get the number of millis since the board was powered on
   Serial.print("millis at startup: ");
@@ -77,12 +112,12 @@ void loop()
     digitalWrite(NOSE_LED_PIN, HIGH); //Turn on LED
     
     //...and play a random sample.
-    
-    int randomSample = random(42);
-    Serial.print("Playing random sample: ");
-    Serial.println(randomSample);
-    
-    WT588D_Send_Command(randomSample);
+
+    WT588D_playRND();
+    //int randomSample = random(42);
+    //Serial.print("Playing random sample: ");
+    //Serial.println(randomSample);
+    //WT588D_Send_Command(randomSample);
     
     //Keep the buzzer on for a bit...
     delay(250);
@@ -176,3 +211,24 @@ void WT588D_Send_Command(unsigned char addr) {
   digitalWrite(WT588D_CS, HIGH);
 
 } //end WT588D_Send_Command
+
+void WT588D_reset(void)
+{
+  //Reset WT588D
+  digitalWrite(WT588D_RST, LOW);
+  delay(250);
+  digitalWrite(WT588D_RST, HIGH);
+  delay(50);
+}
+
+void WT588D_playRND(void)
+{
+    int randomSample = random(42);
+    Serial.print("Playing random sample: ");
+    Serial.println(randomSample);
+    
+    WT588D_Send_Command(randomSample);
+    delay(50);
+}
+
+
