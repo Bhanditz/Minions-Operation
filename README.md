@@ -10,4 +10,4 @@ It plays a random minions sample, lights an LED and runs a motor and plays nag t
 
 I'm not including the Minions samples for copyright reasons. This is just for fun because I was disapointed that the official game didn't already do it. You missed a trick Hasbro! (And wasn't Operation made by MB games originally or did I imagine that?)
 
-See http://www.makebournemouth.com/?p=714 for the prototype in operation (no pun intended).
+See http://www.makebournemouth.com/?p=728 for more build details and https://youtu.be/FSrsc9OuNDk to see it in operation (no pun intended).
